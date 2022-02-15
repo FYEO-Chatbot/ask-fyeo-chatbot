@@ -4,7 +4,9 @@ import torch
 from model import NeuralNet
 from nltk_utils import bag_of_words, tokenize
 
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 with open('intents.json', 'r', encoding="utf8") as f:
     intents = json.load(f)
@@ -24,27 +26,91 @@ model = NeuralNet(input_size, hidden_size, output_size).to(device)
 model.load_state_dict(model_state)
 model.eval()
 
-bot_name = "Sam"
-print("let's chat: type 'quit' to exit")
-while True:
-    sentence = input('You: ')
-    if sentence == "quit":
-        break
-    sentence = tokenize(sentence)
+
+def classify(sentence):
     X = bag_of_words(sentence, all_words)
     X = X.reshape(1, X.shape[0])
     X = torch.from_numpy(X)
 
     output = model(X)
+    # print("OUTPUT: ", output)
     _, predicted = torch.max(output, dim=1)
     tag = tags[predicted.item()]
-
+    # print("PREDICTED: ", predicted, " ", tag)
     probs = torch.softmax(output, dim=1)
+    # print("PROBS: ", probs)
     prob = probs[0][predicted.item()]
+    results = [ (i, p) for i, p in enumerate(probs.detach().numpy()[0])  if p > 0.5]
+    results.sort(key=lambda x: x[1], reverse=True)
+    print(results)
+    # print("PROB: ", prob.item())
+    return_list = []
+    for r in results:
+        return_list.append((tags[r[0]], r[1]))
 
-    if prob.item() > 0.5:
-        for intent in intents["intents"]:
-            if tag == intent["tag"]:
-                print(f"{bot_name}: {random.choice(intent['responses'])}")
-    else:
-        print(f"{bot_name}: I do not understand ... ")
+    return return_list
+
+
+context = {}
+def chat(userId='123', show_details=True):
+    bot_name = "Sam"
+    print("let's chat: type 'quit' to exit")
+    while True:
+        sentence = input('You: ')
+        if sentence == "quit":
+            break
+        sentence = tokenize(sentence)
+        results = classify(sentence)
+        print("FINAL RESULTS: ",results)
+
+        found_answer = False
+
+        while results:
+            for intent in intents["intents"]:
+
+
+                if results[0][0] == intent["tag"]:
+                    print(context)
+
+                    if 'context_set' in intent:
+                        if show_details: print ('context:', intent['context_set'])
+                        context[userId] = intent['context_set']
+
+                    if not 'context_filter' in intent or \
+                    (userId in context and 'context_filter' in intent and intent['context_filter'] == context[userId]):
+                        print(f"{bot_name}: {random.choice(intent['responses'])}")
+                        found_answer = True
+                        break
+            if found_answer:
+                break
+            results.pop(0) 
+        if not found_answer: 
+            print(f"{bot_name}: I do not understand ... ")
+            
+                  
+
+
+
+
+chat()
+    # X = bag_of_words(sentence, all_words)
+    # X = X.reshape(1, X.shape[0])
+    # X = torch.from_numpy(X)
+
+    # output = model(X)
+    # print("OUTPUT: ", output)
+    # _, predicted = torch.max(output, dim=1)
+    # tag = tags[predicted.item()]
+    # print("PREDICTED: ", predicted, " ", tag)
+    # probs = torch.softmax(output, dim=1)
+    # print("PROBS: ", probs)
+    # prob = probs[0][predicted.item()]
+    # valid_probs = [ p for p in probs.detach().numpy()[0]  if p > 0]
+    # print(valid_probs)
+    # print("PROB: ", prob.item())
+    # if prob.item() > 0.35:
+    #     for intent in intents["intents"]:
+    #         if tag == intent["tag"]:
+    #             print(f"{bot_name}: {random.choice(intent['responses'])}")
+    # else:
+    #     print(f"{bot_name}: I do not understand ... ")
