@@ -81,8 +81,7 @@
       "responses": [
         "Effective Fall 2021, in order to maintain a CLEAR standing, as per the 2021-2022 Undergraduate Calendar for Aerospace Engineering, Biomedical Engineering, Chemical Engineering Co-Op, Civil Engineering, Computer Engineering, Electrical Engineering, Industrial Engineering, and Mechanical Engineering, a CGPA of 1.67 (or higher) AND TGPA of 1.33 (or higher) will be required. \n\nStudents taking courses under a Probation Contract will need to adhere to the specific CGPA and TGPA requirements as per their contract.\n\nFor more information, visit the Undergraduate Calendar for the specific program, admittance year and click on Academic Standing Variation and Grades, GPA and Academic Standing website.\n"
       ],
-      "context_set": "standing",
-      "context_filter": ""
+      "context_set": "standing"
     },
     {
       "tag": "Failed Class Academic Standing",
