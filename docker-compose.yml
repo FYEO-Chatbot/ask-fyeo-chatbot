@@ -8,5 +8,9 @@ services:
     build: .
     ports:
       - "80:80"
-    env_file:
-      - .env
+    environment:
+      - FLASK_ENV=dev
+      - FLASK_APP=api
+      - MY_SECRET_KEY=***REMOVED***
+      - FYEO_PASSWORD=***REMOVED***
+      - DATABASE_URL=***REMOVED***
