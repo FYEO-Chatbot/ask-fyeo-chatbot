@@ -4,9 +4,9 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
 from chatbot.chatbot_interface import ChatbotInterface
-from .database import db, FAQ, Staff
+from .database import db
 from .routes import routes
-from .commands import backup_faq, train_model, chat, view_intents, test_model, backup_faq, get_data
+from .commands import backup_faq, train_model, chat, view_intents, test_model, backup_faq, get_data, initialize_faq, initialize_staff_user
 from enums import Mode
 import json
 from flask_apscheduler import APScheduler
@@ -54,7 +54,7 @@ def update_streamlit_repo():
     g.close()
 
 
-def create_app(db_mode=Mode.DEV,chatbot_mode=Mode.DEV,chatbot_type=ChatbotInterface.bow_model,init=False):
+def create_app(db_mode=Mode.DEV,chatbot_mode=Mode.DEV,chatbot_type=ChatbotInterface.bow_model):
     app = Flask(__name__)
     if os.environ.get('DB_MODE') == "production":
         db_mode = Mode.PROD
@@ -94,35 +94,17 @@ def create_app(db_mode=Mode.DEV,chatbot_mode=Mode.DEV,chatbot_type=ChatbotInterf
     else:
         with app.app_context():
             db.create_all()
-            if not init:
-                data = get_data()
-                chatbot = ChatbotInterface(type=chatbot_type, data=data, mode=chatbot_mode)
-                app.config["chatbot"] = chatbot
-            else:
+            if os.environ.get("DB_INIT") == "True":
                 #initialize the tables in postgres with pre-populated data
                 try:
-                    with open('intents.json', 'r', encoding='utf8') as f:
-                        file_data = json.loads(f.read())
-                        for q in file_data['intents']:
-                            tag = q['tag']
-                            patterns = q['patterns']
-                            responses = q['responses']
-                        
-                            if len(list(filter(lambda p: p.find('|') != -1, patterns))) > 0 or len(list(filter(lambda r: r.find('|') != -1, responses))) > 0:
-                                continue
-
-                            patterns = '|'.join(patterns)
-                            responses = '|'.join(responses)
-                            
-                            new_faq = FAQ(tag=tag, patterns=patterns, responses=responses)
-                            db.session.add(new_faq)
-                            db.session.commit()
-
-                    new_staff = Staff(email="pancho.fernandez@ryerson.ca")
-                    db.session.add(new_staff)
-                    db.session.commit()
+                    initialize_faq()
+                    initialize_staff_user()   
                 except Exception as e:
                     print("ERROR", e)
+
+            data = get_data()
+            chatbot = ChatbotInterface(type=chatbot_type, data=data, mode=chatbot_mode)
+            app.config["chatbot"] = chatbot
             
 
     
