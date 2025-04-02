@@ -21,7 +21,7 @@ load_dotenv() #load environment variables
 @scheduler.task("cron", id="update_streamlit_repo", hour=0, minute=0, misfire_grace_time=900) 
 def update_streamlit_repo():
     print("Updating Streamlit chatbot repo")
-    REPO_NAME = "Panchofdez/ask-fyeo-chatbot-streamlit"
+    REPO_NAME = "FYEO-Chatbot/ask-fyeo-chatbot-streamlit"
     BRANCH_NAME = "main"
 
     auth = Auth.Token(os.environ.get('GIT_TOKEN'))
