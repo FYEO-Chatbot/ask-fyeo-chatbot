@@ -6,7 +6,7 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import datetime
 
 
-STREAMLIT_APPS = ["https://ask-fyeo.streamlit.app"]
+STREAMLIT_APPS = ["https://ask-fyeo-chatbot.streamlit.app"]
 
 # Set up Selenium webdriver
 options = webdriver.ChromeOptions()
