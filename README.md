@@ -1,15 +1,15 @@
 # ASK-FYEO-Chatbot
 
-This is the backend API that powers the TMU First Year Engineering Office chatbot, designed to assist first-year engineering students and staff by answering their questions. It stores and manages the FAQs, along with key information and statistics related to each conversation, in a PostgreSQL database. 
+This is the backend API that powers the TMU First Year Engineering Office chatbot, designed to assist first-year engineering students and staff by answering their questions. It stores and manages a student/staff FAQ, along with key information and statistics related to each conversation, in a PostgreSQL database. 
 
-(DEPRECATED) The chatbot is created with a pytorch deep neural network and it is accessed via this API. The chatbot trains on the FAQ information stored in the database.
+(DEPRECATED) The chatbot is created with a pytorch deep neural network and it is accessed via this API. The chatbot trains on the FAQ data stored in the database.
 
 There are multiple types of chatbot supported with this app each using different techniques:
 - Bag Of Words (BOW) model 
 - BERT transformer based model
 - Sentence-Transformer (SBERT) model (no neural network)
 
-(UPDATED) The updated chatbot used in production has been decoupled from this API and is now available as a Streamlit app. You can find the repository [here](https://github.com/Panchofdez/ask-fyeo-chatbot-streamlit) and access the app [here](https://ask-fyeo.streamlit.app/).
+(UPDATED) The updated chatbot used in production has been decoupled from this API and is now available as a Streamlit app. You can find the repository [here](https://github.com/Panchofdez/ask-fyeo-chatbot-streamlit) and access the app [here](https://ask-fyeo-chatbot.streamlit.app/).
 
 
 ## Pre-requisites
@@ -19,58 +19,66 @@ There are multiple types of chatbot supported with this app each using different
 
 ## Usage
 
-### In Development Environment
+### Development Setup (Local Database)
 - using a database solely for development purposes
 - will create/run a docker container for the chatbot API and another container for development database (postgres)
 - ensure you have a .env file with the environment variables defined in docker-compose-dev.yml file
 
-Run app for the first time or if there are any new changes
-```docker-compose -f docker-compose-dev.yml up --build```
+Commands:    
+- Run app for the first time or if there are any new changes
+    ```
+    docker-compose -f docker-compose-dev.yml up --build
+    ```
+- Re-run app
+    ```
+    docker-compose -f docker-compose-dev.yml up
+    ```
+- Stop app
+    ```
+    docker-compose -f docker-compose-dev.yml down
+    ```
 
-Re-run app
-```docker-compose -f docker-compose-dev.yml up```
 
-Stop app
-```docker-compose -f docker-compose-dev.yml down```
-
-
-### Testing production environments on local machine
-- if you want to use the database used in production
+### Production-like Local Testing
+- if you want to use the database used in production (**use with caution**)
 - will create/run a docker container only for the chatbot API
 - ensure you have a .env file with the environment variables defined in docker-compose.yml file
 
 Commands:
-Run app for the first time or if there are any new changes
-```docker-compose up --build```
-
-Re-run app
-```docker-compose up```
-
-Stop app
-```docker-compose down```
-
-
-### Entering docker container and running commands 
-
-```docker exec -it chatbot bash```
-
-
-There are 5 commands available when inside container:
-1. Train model: ```flask train_model``` - trains a chatbot model on the FAQ stored in the corresponding database and saves it into a .pth file. Will use Staff FAQ if ```--for_staff/-fs``` flag is set otherwise will use Student FAQ.
+- Run app for the first time or if there are any new changes
+    ```
+    docker-compose up --build
+    ```
+- Re-run app
+    ```
+    docker-compose up
+    ```
+- Stop app
+    ```
+    docker-compose down
+    ```
 
 
-2. Chat: ```flask chat``` - Allows you to ask questions with the chatbot. Will use Staff FAQ if ```--for_staff/-fs``` flag is set otherwise will use Student FAQ.
+### Database Initialization
+- To populate a fresh database with initial FAQ data (defined in intents.json) and a staff user, set the environment variable DB_INIT=True in the corresponding docker-compose file. 
+- **Important**: Only enable this for an empty database to avoid unintended data duplication or conflicts
 
 
-3. View intents: ```flask view_intents``` - View the current FAQ used by the chatbot running in the docker container
+### Flask Commands 
 
-
-4. Test model: ```flask test_model``` - Test the chatbot on the current FAQ stored in the corresponding database. Will use Staff FAQ if ```--for_staff/-fs``` flag is set otherwise will use Student FAQ.
-
-
-5. Backup FAQ: ```flask backup_faq``` - Backup the contents of the current FAQ to a intents.json file
-
-
+- Run the following command to enter the docker container for the flask chatbot api
+    ```
+    docker exec -it chatbot bash
+    ```
+- There are 5 commands available when inside container:
+    | Command               | Description                                      | Flags                     |
+    |-----------------------|--------------------------------------------------|---------------------------|
+    | `flask train_model`   | Trains the model using FAQ data; saves to `.pth`.| `--for_staff` / `-fs`     |
+    | `flask test_model`    | Test the chatbot on the current FAQ data.        | `--for_staff` / `-fs`     |
+    | `flask chat`          | Interactive chat with the trained chatbot model. | `--for_staff` / `-fs`     |
+    | `flask view_intents`  | Displays the current FAQ data used.              | *(None)*                  |
+    | `flask backup_faq`    | Backup the all FAQ data to a intents.json file   | *(None)*                  |
+- If `--for_staff` / `-fs` flag is set it will use the Staff FAQ, otherwise will use the Student FAQ as default. 
 
 ### Database Migration
 1. Update env variable `DB_MIGRATE=True` in corresponding docker-compose file
